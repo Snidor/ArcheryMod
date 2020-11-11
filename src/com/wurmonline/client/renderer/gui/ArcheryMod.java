@@ -11,6 +11,7 @@ import org.gotti.wurmunlimited.modloader.interfaces.WurmClientMod;
 
 import com.wurmonline.client.game.World;
 import com.wurmonline.client.renderer.backend.Queue;
+import com.wurmonline.client.renderer.cell.CreatureCellRenderable;
 
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -59,8 +60,8 @@ public class ArcheryMod implements WurmClientMod, PreInitable, Initable
 				return null;
 			});			
 
-			CtClass lCtTargetWindow = lClassPool.getCtClass("com.wurmonline.client.renderer.gui.TargetWindow");
-			lCtTargetWindow.getMethod("setTarget", "(JLjava/lang/String;Lcom/wurmonline/client/renderer/cell/CreatureCellRenderable;)V").insertBefore("com.wurmonline.client.renderer.gui.ArcheryMod.saveOriginalName($2);");	
+			CtClass lCtTargetWindow = lClassPool.getCtClass( "com.wurmonline.client.renderer.gui.TargetWindow" );
+			lCtTargetWindow.getMethod( "setTarget", "(JLjava/lang/String;Lcom/wurmonline/client/renderer/cell/CreatureCellRenderable;)V" ).insertBefore( "com.wurmonline.client.renderer.gui.ArcheryMod.saveOriginalName($3);" );
 		} 
 		catch ( Throwable e ) 
 		{
@@ -75,7 +76,7 @@ public class ArcheryMod implements WurmClientMod, PreInitable, Initable
 		try 
 		{
 			ClassPool lClassPool = HookManager.getInstance().getClassPool();
-			lClassPool.get("com.wurmonline.client.renderer.gui.TargetIronRenderer").getMethod("renderComponent","(Lcom/wurmonline/client/renderer/backend/Queue;F)V").insertAfter("com.wurmonline.client.renderer.gui.ArcheryMod.setTextColor($1);");			
+			lClassPool.get( "com.wurmonline.client.renderer.gui.TargetIronRenderer" ).getMethod( "renderComponent","(Lcom/wurmonline/client/renderer/backend/Queue;F)V" ).insertAfter( "com.wurmonline.client.renderer.gui.ArcheryMod.setTextColor($1);" );			
 		}
 		catch ( Throwable e ) 
 		{
@@ -107,9 +108,33 @@ public class ArcheryMod implements WurmClientMod, PreInitable, Initable
 		return lReturn;
 	}
 	
-	public static void saveOriginalName( String pName )
+	public static void saveOriginalName( CreatureCellRenderable pCreature )
 	{
-		mOriginalName = pName;
+		if ( mWindow.creature != null )
+		{
+			String lOrgName = "";
+			if ( Character.isDigit( mWindow.creature.getCreatureData().getName().charAt( 0 ) ) )
+			{
+				lOrgName = mWindow.creature.getCreatureData().getName().substring( mWindow.creature.getCreatureData().getName().indexOf(" ") + 2 );
+			}
+			else
+			{
+				lOrgName = mWindow.creature.getCreatureData().getName();			
+			}
+			mWindow.creature.getCreatureData().renameNameOnly( lOrgName );			
+		}
+		
+		if ( pCreature != null )
+		{			
+			if ( Character.isDigit( pCreature.getHoverName().charAt( 0 ) ) )
+			{
+				mOriginalName = pCreature.getHoverName().substring( pCreature.getHoverName().indexOf(" ") + 1 );
+			}
+			else
+			{
+				mOriginalName = pCreature.getHoverName();			
+			}
+		}
 	}
 	
 	public static void setRed( Queue pQueue )
